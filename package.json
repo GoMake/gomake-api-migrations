@@ -1,18 +1,17 @@
 {
-  "name": "gomake-api-migrations",
+  "name": "@gomake/gomake-api-migrations",
   "version": "1.0.0",
-  "description": "",
-  "author": "Jonathan Barton <> ,Morris Singer <>,Neha Abrol <nehaabrol87@gmail.com>",
+  "description": "db migrations for gomake-api",
+  "author": "Jonathan Barton <nehaabrol87@gmail.com>",
   "main": "index.js",
-  "private": false,
   "engines": {
-    "node": "4.4.x",
-    "npm": "3.9.x"
+    "node": "7.7.x",
+    "npm": "4.1.x"
   },
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git@github.com:GoMake/gomake-api-migrations.git"
+    "url": "git+ssh://git@github.com/GoMake/gomake-api-migrations.git"
   },
   "keywords": [
     "express",
@@ -25,5 +24,9 @@
     "mongodb-migrations": "^0.8.5"
   },
   "devDependencies": {},
-  "license": "GPLv3"
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/GoMake/gomake-api-migrations/issues"
+  },
+  "homepage": "https://github.com/GoMake/gomake-api-migrations#readme"
 }
