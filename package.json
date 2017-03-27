@@ -8,7 +8,9 @@
     "node": "7.7.x",
     "npm": "4.1.x"
   },
-  "scripts": {},
+  "scripts": {
+    "migrate:local": "./node_modules/mongodb-migrations/bin/mm migrate --config local.json"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/GoMake/gomake-api-migrations.git"
