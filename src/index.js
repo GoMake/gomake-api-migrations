@@ -1,9 +1,8 @@
-const path = require('path');
-const mongoose = require('mongoose');
-const winston = require('winston');
-const Migration = require('./models/migration');
-const filter = require('lodash').filter;
-const includes = require('lodash').includes;
+import path from 'path';
+import mongoose from 'mongoose';
+import winston from 'winston';
+import Migration from './models/migration';
+import {filter, includes} from 'lodash';
 
 const filterAvailableMigrations = (availableMigrations, previousMigrations) => filter(availableMigrations, migration => !includes(previousMigrations, migration));
 
@@ -25,7 +24,10 @@ const migrateToLatest = (migrationsToRun) => {
   		winston.log('info', `Running ${migrationName}.`);
 		const migration = require(path.join(__dirname, 'migrations', migrationName));
 		return migration.up();
-  	}));
+  	})).then(() => {
+		winston.log('info', 'Updating migrations collection.');
+		// TODO: Update the migrations collection
+  	});
 };
 
 const getPreviousMigrations = () => new Promise((resolve, reject) => {
@@ -95,11 +97,13 @@ const doDown = () => {
 	});
 }
 
-if (process.env.GM_MIGRATION_DIRECTION === 'down') {
-	doDown();
-} else if (process.env.GM_MIGRATION_DIRECTION === 'up') {
-	doUp();
-} else {
-	throw new Error('No migration direction available.');
+export default function () {
+	if (process.env.GM_MIGRATION_DIRECTION === 'down') {
+		doDown();
+	} else if (process.env.GM_MIGRATION_DIRECTION === 'up') {
+		doUp();
+	} else {
+		throw new Error('No migration direction available.');
+	}
 }
 

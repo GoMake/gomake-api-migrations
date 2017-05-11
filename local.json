@@ -1,7 +1,0 @@
-{
-  "host": "127.0.0.1",
-  "port": "27017",
-  "db": "express-mongoose-es6-rest-api-development",
-  "directory": "migrations",
-  "collection": "mongodb-migrations"
-}

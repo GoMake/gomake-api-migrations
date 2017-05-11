@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "no-param-reassign": [0],
+    "arrow-body-style": [0],
+    "dot-notation": [0],
+    "no-var": [0],
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "space-before-function-paren": [
+      2,
+      {
+        "anonymous": "always",
+        "named": "never"
+      }
+    ],
+    "no-use-before-define": [
+      2,
+      "nofunc"
+    ],
+    "arrow-body-style": [0],
+    // TODO: turn on later
+    "comma-dangle": [
+      0
+    ]
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "airbnb/base"
+  ]
+}
