@@ -53,9 +53,6 @@ const removeLastMigrationFromMongo = (lastMigration) => new Promise((resolve, re
 	});
 });
 
-winston.log('info', 'starting migration service.');
-const connection = mongoose.connect(process.env.GM_DB, { server: { socketOptions: { keepAlive: 1 } } });
-
 const doUp = () => {
 	winston.log('info', 'Migrating to latest.');
 
@@ -98,6 +95,9 @@ const doDown = () => {
 }
 
 export default function () {
+	winston.log('info', 'starting migration service.');
+	const connection = mongoose.connect(process.env.GM_DB, { server: { socketOptions: { keepAlive: 1 } } });
+
 	if (process.env.GM_MIGRATION_DIRECTION === 'down') {
 		doDown();
 	} else if (process.env.GM_MIGRATION_DIRECTION === 'up') {
