@@ -10,11 +10,11 @@ const getAvailableMigrations = () => new Promise((resolve, reject) => {
 	const migrationsFolder = './migrations/';
 	const fs = require('fs');
 	fs.readdir(migrationsFolder, (err, files) => {
-		const migrations = files.map(migration => migration.replace('.js', ''))
 		if (err) {
 			reject(err);
 			return;
 		}
+		const migrations = files.map(migration => migration.replace('.js', ''))
 		resolve(migrations);
 	});
 });
