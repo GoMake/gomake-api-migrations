@@ -7,7 +7,7 @@ import {filter, includes} from 'lodash';
 const filterAvailableMigrations = (availableMigrations, previousMigrations) => filter(availableMigrations, migration => !includes(previousMigrations, migration));
 
 const getAvailableMigrations = () => new Promise((resolve, reject) => {
-	const migrationsFolder = './migrations/';
+	const migrationsFolder = path.join(__dirname, 'migrations/');
 	const fs = require('fs');
 	fs.readdir(migrationsFolder, (err, files) => {
 		if (err) {
