@@ -14,7 +14,7 @@ const getAvailableMigrations = () => new Promise((resolve, reject) => {
 			reject(err);
 			return;
 		}
-		const migrations = files.map(migration => migration.replace('.js', ''))
+		const migrations = filter(files, migration => /\.js$/.test(migration)).map(migration => migration.replace('.js', ''));
 		resolve(migrations);
 	});
 });
