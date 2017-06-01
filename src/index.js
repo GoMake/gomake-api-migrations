@@ -1,109 +1,38 @@
-import path from 'path';
 import mongoose from 'mongoose';
 import winston from 'winston';
-import Migration from './models/migration';
-import {filter, includes} from 'lodash';
+import _preconditions from 'preconditions';
 
-const filterAvailableMigrations = (availableMigrations, previousMigrations) => filter(availableMigrations, migration => !includes(previousMigrations, migration));
+import constants from './constants';
+import handlers from './handlers';
+import _migrators from './migrators';
 
-const getAvailableMigrations = () => new Promise((resolve, reject) => {
-	const migrationsFolder = path.join(__dirname, 'migrations/');
-	const fs = require('fs');
-	fs.readdir(migrationsFolder, (err, files) => {
-		if (err) {
-			reject(err);
-			return;
-		}
-		const migrations = filter(files, migration => /\.js$/.test(migration)).map(migration => migration.replace('.js', ''));
-		resolve(migrations);
-	});
-});
+const preconditions = _preconditions.errr();
 
-const migrateToLatest = (migrationsToRun) => {
-	return Promise.all(migrationsToRun.map(migrationName => {
-  		winston.log('info', `Running ${migrationName}.`);
-		const migration = require(path.join(__dirname, 'migrations', migrationName));
-		return migration.up();
-  	})).then(() => {
-		winston.log('info', 'Updating migrations collection.');
-		// TODO: Update the migrations collection
-  	});
-};
+mongoose.Promise = global.Promise;
 
-const getPreviousMigrations = () => new Promise((resolve, reject) => {
-	Migration.find(function (err, results) {
-		if (err) {
-			winston.log(err);
-			reject(err);
-			mongoose.connection.close();
-			return;
-		}
-		resolve(results);
-		mongoose.connection.close();
-	});
-});
-
-const removeLastMigrationFromMongo = (lastMigration) => new Promise((resolve, reject) => {
-	Migration.remove({ _id: lastMigration }, function(err) {
-	    if (err) {
-	            reject(err);
-	            return;
-	    }
-	    resolve();
-	});
-});
-
-const doUp = () => {
-	winston.log('info', 'Migrating to latest.');
-
-	getPreviousMigrations().then(results => {
-		const previousMigrations = results.map(result => result.id).sort();
-
-		return getAvailableMigrations().then(availableMigrations => {
-		  	const migrationsToRun = filterAvailableMigrations(availableMigrations, previousMigrations);
-
-			if (migrationsToRun.length == 0) {
-				winston.log('info', 'No migrations to run.');
-				return;
-			}
-
-			winston.log('info', 'Running the following migrations:');
-			winston.log('info', migrationsToRun);
-
-			return migrateToLatest(migrationsToRun);
-		});
-	}).then(() => {
-		winston.log('info', 'Done.');
-	}).catch((err) => {
-		throw new Error(err);
-	});
-};
-
-const doDown = () => {
-	winston.log('info', 'Rolling back one migration.');
-
-	getPreviousMigrations().then(results => {
-		const previousMigrations = results.map(result => result.id).sort();
-		const lastMigration = previousMigrations[previousMigrations.length - 1];
-		const migration = require(path.join(__dirname, 'migrations', lastMigration));
-		migration.down().then(() => {
-			return removeLastMigrationFromMongo();
-		}).catch((err) => {
-			throw new Error(err);
-		})
-	});
-}
+const isValidMigrationDirection = migrationDirection => (migrationDirection === constants.MIGRATION_DIRECTIONS.down) || (migrationDirection === constants.MIGRATION_DIRECTIONS.up);
 
 export default function () {
-	winston.log('info', 'starting migration service.');
-	const connection = mongoose.connect(process.env.GM_DB, { server: { socketOptions: { keepAlive: 1 } } });
+	const migrationDirection = process.env.GM_MIGRATION_DIRECTION;
+	const databaseUrl = process.env.GM_DB;
 
-	if (process.env.GM_MIGRATION_DIRECTION === 'down') {
-		doDown();
-	} else if (process.env.GM_MIGRATION_DIRECTION === 'up') {
-		doUp();
-	} else {
-		throw new Error('No migration direction available.');
+	preconditions.shouldBeDefined(migrationDirection, constants.ERROR_MESSAGES.missingDirection).test();
+	preconditions.shouldBeDefined(databaseUrl, constants.ERROR_MESSAGES.missingDatabase).test();
+	if (!isValidMigrationDirection(migrationDirection)) {
+		throw new Error(constants.ERROR_MESSAGES.invalidDirection);
 	}
+
+	winston.log('info', 'starting migration service.');
+	const connection = mongoose.connect(databaseUrl, constants.MONGOOSE);
+
+	const dependencies = {
+		connection: mongoose.connection
+	};
+
+	const migrators = _migrators(dependencies);
+
+	migrators[migrationDirection]()
+			.then(handlers.success)
+			.catch(handlers.error);
 }
 
